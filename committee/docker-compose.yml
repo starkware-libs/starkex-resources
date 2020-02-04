@@ -1,0 +1,31 @@
+version: "3.3"
+services:
+  committee-aerospike:
+    image: aerospike/aerospike-server:4.7.0.5
+    command: ["--config-file","/etc/aerospike.conf"]
+    hostname: aerospike
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../aerospike/aerospike.conf:/etc/aerospike.conf:ro
+
+
+  mock-availability-gateway:
+    build:
+      context: .
+      dockerfile: mock_availability_gateway/Dockerfile
+    ports:
+      - "9414:9414"
+
+  committee:
+    build:
+      context: ../
+      dockerfile: committee/Dockerfile
+    volumes:
+      - ./config.yml:/config.yml:ro
+      - ./private_key.txt:/private_key.txt:ro
+    depends_on:
+      - committee-aerospike
+      - mock-availability-gateway
+    environment:
+      AVAILABILITY_GW_ENDPOINT: "http://mock-availability-gateway:9414"

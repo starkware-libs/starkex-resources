@@ -1,0 +1,35 @@
+{
+    "update": {
+        "vault_root": "037912467b7b3cc02deec7b56829e3ae494b8d96f4e79d6ca7cc766c64d10806",
+        "order_root": "000ab5b4ce84eb13d24d4dc89bc96ba10756a91cf180be92e015f7941d7e3b9d",
+        "vaults": {
+            "0": {
+                "token": "0x0",
+                "balance": "0",
+                "stark_key": "0x0"
+            },
+            "2035282972": {
+                "token": "0x2dc93a3c219fb2aa83f4eaa044b941853eaf43d86ef2dbc5b912783fcaf20c5",
+                "balance": "950",
+                "stark_key": "0x4e7cd30036f23c3bf1b7bd551b9c2e888590be1a6bdf24d3a44b6cebaf30b85"
+            },
+            "2116315985": {
+                "token": "0x2dc93a3c219fb2aa83f4eaa044b941853eaf43d86ef2dbc5b912783fcaf20c5",
+                "balance": "1050",
+                "stark_key": "0x65be82eae31457f571757809e668c9d450a03fd96ae8b6c1c5c146ff17babfc"
+            }
+        },
+        "orders": {
+            "0": {
+                "fulfilled_amount": "0"
+            },
+            "1": {
+                "fulfilled_amount": "75"
+            },
+            "2": {
+                "fulfilled_amount": "25"
+            }
+        },
+        "prev_batch_id": -1
+    }
+}

@@ -1,0 +1,43 @@
+AVAILABILITY_GW_ENDPOINT:
+  https://starkware-data-availability.com:443
+VAULTS_MERKLE_HEIGHT:
+  31
+ORDERS_MERKLE_HEIGHT:
+  63
+POLLING_INTERVAL:
+  1
+VALIDATE_ORDERS:
+  False
+PRIVATE_KEY_PATH:
+  /private_key.txt
+# CERTIFICATES_PATH:
+#   /certs
+
+LOGGING:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    plaintext:
+      format: "[%(asctime)s] %(process)d %(levelname)s %(name)s:%(funcName)s:%(lineno)s - %(message)s"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: plaintext
+      stream: ext://sys.stdout
+  loggers:
+    root:
+      level: INFO
+      handlers: [console]
+    committee:
+      level: DEBUG
+      handlers: [console]
+
+STORAGE:
+  class: starkware.storage.aerospike_storage_threadpool.AerospikeLayeredStorage
+  config:
+    hosts:
+      - committee-aerospike:3000
+    namespace: starkware
+    aero_set: starkware
+    index_bits: 28

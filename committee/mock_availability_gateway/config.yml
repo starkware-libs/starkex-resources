@@ -1,0 +1,19 @@
+LOGGING:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    plaintext:
+      format: "[%(asctime)s] %(process)d %(levelname)s %(name)s:%(funcName)s:%(lineno)s - %(message)s"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: plaintext
+      stream: ext://sys.stdout
+  loggers:
+    root:
+      level: INFO
+      handlers: [console]
+    mock_availability_gateway:
+      level: DEBUG
+      handlers: [console]

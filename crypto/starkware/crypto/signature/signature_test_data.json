@@ -1,0 +1,80 @@
+{
+    "settlement": {
+        "party_a_order": {
+            "vault_id_sell": 21,
+            "vault_id_buy": 27,
+            "amount_sell": "2154686749748910716",
+            "amount_buy": "1470242115489520459",
+            "token_sell": "0x5fa3383597691ea9d827a79e1a4f0f7989c35ced18ca9619de8ab97e661020",
+            "token_buy": "0x774961c824a3b0fb3d2965f01471c9c7734bf8dbde659e0c08dca2ef18d56a",
+            "nonce": 0,
+            "expiration_timestamp": 438953,
+            "signature": {
+                "r": "0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882",
+                "w": "0x1f2c44a7798f55192f153b4c48ea5c1241fbb69e6132cc8a0da9c5b62a4286e"
+            },
+            "public_key": "0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"
+        },
+        "party_b_order": {
+            "vault_id_sell": 221,
+            "vault_id_buy": 227,
+            "amount_buy": "21546867497489",
+            "amount_sell": "14702421154895",
+            "token_buy": "0x5fa3383597691ea9d827a79e1a4f0f7989c35ced18ca9619de8ab97e661020",
+            "token_sell": "0x774961c824a3b0fb3d2965f01471c9c7734bf8dbde659e0c08dca2ef18d56a",
+            "nonce": 1,
+            "expiration_timestamp": 468963,
+            "signature": {
+                "r": "0x2ee2b8927122f93dd5fc07a11980f0fab4c8358e5d1306bfee5e095355d2ad0",
+                "w": "0x2bf7b6c573fd933bc89b9cd4921500cb28f4fe0f34152932fd7777bc920e1b4"
+            },
+            "public_key": "0x3d8a9687c613b2be32b55c5c0460e012b592e2fbbb4fc281fb87b0d8c441b3e"
+        },
+        "settlement_info": {
+            "party_b_sold": "14702421154895",
+            "party_a_sold": "21546867497489"
+        }
+    },
+    "transfer_order": {
+        "amount": "2154549703648910716",
+        "expiration_timestamp": 438953,
+        "nonce": 1,
+        "target_public_key": "0x5fa3383597691ea9d827a79e1a4f0f7949435ced18ca9619de8ab97e661020",
+        "target_vault_id": 21,
+        "sender_vault_id": 34,
+        "token": "0x3003a65651d3b9fb2eff934a4416db301afd112a8492aaf8d7297fc87dcd9f4",
+        "signature": {
+            "r": "0x735fffa9bf371ca294c5f74c15b434684cfe7e9e0500e6a59589ef05c1fce13",
+            "w": "0x1593b9496b7572f7bae8028c66405e3d76132723affdb5e4e76aadb8c2ae04f"
+        },
+        "public_key": "0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4"
+    },
+    "meta_data": {
+        "party_a_order": {
+            "message_hash": "0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f",
+            "private_key": "0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc",
+            "order_id": "4142879348967097428"
+        },
+        "party_b_order": {
+            "message_hash": "0x6adb14408452ede28b89f40ca1847eca4de6a2dd6eb2c7d6dc5584f9399586",
+            "private_key": "0x4c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"
+        },
+        "transfer_order": {
+            "message_hash": "0x6366b00c218fb4c8a8b142ca482145e8513c78e00faa0de76298ba14fc37ae7",
+            "private_key": "0x7cc2767a160d4ea112b436dc6f79024db70b26b11ed7aa2cb6d7eef19ace703",
+            "order_id": "7162605823528514760"
+        }
+    },
+    "hash_test": {
+        "pedersen_hash_data_1": {
+            "input_1": "0x3d937c035c878245caf64531a5756109c53068da139362728feb561405371cb",
+            "input_2": "0x208a0a10250e382e1e4bbe2880906c2791bf6275695e02fbbc6aeff9cd8b31a",
+            "output": "0x30e480bed5fe53fa909cc0f8c4d99b8f9f2c016be4c41e13a4848797979c662"
+        },
+        "pedersen_hash_data_2": {
+            "input_1": "0x58f580910a6ca59b28927c08fe6c43e2e303ca384badc365795fc645d479d45",
+            "input_2": "0x78734f65a067be9bdb39de18434d71e79f7b6466a4b66bbd979ab9e7515fe0b",
+            "output": "0x68cc0b76cddd1dd4ed2301ada9b7c872b23875d5ff837b3a87993e0d9996b87"
+        }
+    }
+}

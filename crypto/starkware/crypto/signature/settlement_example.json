@@ -1,0 +1,36 @@
+{
+  "party_a_order": {
+    "vault_id_sell": 21,
+    "vault_id_buy": 27,
+    "amount_sell": "2154686749748910716",
+    "amount_buy": "1470242115489520459",
+    "token_sell": "0x5fa3383597691ea9d827a79e1a4f0f7989c35ced18ca9619de8ab97e661020",
+    "token_buy": "0x774961c824a3b0fb3d2965f01471c9c7734bf8dbde659e0c08dca2ef18d56a",
+    "nonce": 0,
+    "expiration_timestamp": 438953,
+    "signature": {
+      "r": "0x6379554f92c2cd719384367772b7ccf44b1c1220a2fd4a608753b68d32eb6c5",
+      "w": "0x40859b2a1f555c6067092d91b9e296ad932188117b5def9f2b539e15d5c8e72"
+    },
+    "public_key": "0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"
+  },
+  "party_b_order": {
+    "vault_id_sell": 221,
+    "vault_id_buy": 227,
+    "amount_buy": "21546867497489",
+    "amount_sell": "14702421154895",
+    "token_buy": "0x5fa3383597691ea9d827a79e1a4f0f7989c35ced18ca9619de8ab97e661020",
+    "token_sell": "0x774961c824a3b0fb3d2965f01471c9c7734bf8dbde659e0c08dca2ef18d56a",
+    "nonce": 1,
+    "expiration_timestamp": 468963,
+    "signature": {
+      "r": "0x1d8f7a5c867e01d1535537ff1b973121b1db91ef2e630423de2f1501f12fcae",
+      "w": "0x44f1a951b2e178b83a53d80bed2fae8eb23da577c47e9208a6c5d9ac3e1d2f5"
+    },
+    "public_key": "0x3d8a9687c613b2be32b55c5c0460e012b592e2fbbb4fc281fb87b0d8c441b3e"
+  },
+  "settlement_info": {
+    "party_b_sold": "14702421154895",
+    "party_a_sold": "21546867497489"
+  }
+}
