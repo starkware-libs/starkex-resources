@@ -42,15 +42,15 @@ def test_ecdsa_signature():
     priv_key = get_random_private_key()
     public_key = private_key_to_ec_point_on_stark_curve(priv_key)
     msg = random.randint(0, 2**251 - 1)
-    r, w = sign(msg, priv_key)
-    assert verify(msg, r, w, public_key)
-    assert verify(msg, r, w, public_key[0])
-    assert not verify(msg + 1, r, w, public_key)
-    assert not verify(msg + 1, r, w, public_key[0])
-    assert not verify(msg, r + 1, w, public_key)
-    assert not verify(msg, r + 1, w, public_key[0])
-    assert not verify(msg, r, w + 1, public_key)
-    assert not verify(msg, r, w + 1, public_key[0])
+    r, s = sign(msg, priv_key)
+    assert verify(msg, r, s, public_key)
+    assert verify(msg, r, s, public_key[0])
+    assert not verify(msg + 1, r, s, public_key)
+    assert not verify(msg + 1, r, s, public_key[0])
+    assert not verify(msg, r + 1, s, public_key)
+    assert not verify(msg, r + 1, s, public_key[0])
+    assert not verify(msg, r, s + 1, public_key)
+    assert not verify(msg, r, s + 1, public_key[0])
 
 
 @pytest.fixture
@@ -113,12 +113,12 @@ def test_limit_order_signing_example(data_file, order_data):
         token_sell=int(order['token_sell'], 16), token_buy=int(order['token_buy'], 16),
         nonce=int(order['nonce']),
         expiration_timestamp=order['expiration_timestamp'])
-    r, w = sign(msg, private_key)
-    assert verify(msg, r, w, public_key)
+    r, s = sign(msg, private_key)
+    assert verify(msg, r, s, public_key)
 
     r = int(order['signature']['r'], 16)
-    w = int(order['signature']['w'], 16)
-    assert verify(msg, r, w, public_key)
+    s = int(order['signature']['s'], 16)
+    assert verify(msg, r, s, public_key)
 
 
 def test_transfer_signing_example(data_file):
@@ -135,6 +135,6 @@ def test_transfer_signing_example(data_file):
         receiver_vault_id=int(transfer['target_vault_id']),
         receiver_public_key=int(transfer['target_public_key'], 16),
         expiration_timestamp=transfer['expiration_timestamp'])
-    r, w = sign(transfer_msg, private_key)
-    assert verify(transfer_msg, r, w, public_key)
-    logger.info(f'transfer_msg signature: r: {r:x} w: {w:x}')
+    r, s = sign(transfer_msg, private_key)
+    assert verify(transfer_msg, r, s, public_key)
+    logger.info(f'transfer_msg signature: r: {r:x} s: {s:x}')

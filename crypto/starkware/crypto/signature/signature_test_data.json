@@ -11,7 +11,7 @@
             "expiration_timestamp": 438953,
             "signature": {
                 "r": "0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882",
-                "w": "0x1f2c44a7798f55192f153b4c48ea5c1241fbb69e6132cc8a0da9c5b62a4286e"
+                "s": "0x4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"
             },
             "public_key": "0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"
         },
@@ -26,7 +26,7 @@
             "expiration_timestamp": 468963,
             "signature": {
                 "r": "0x2ee2b8927122f93dd5fc07a11980f0fab4c8358e5d1306bfee5e095355d2ad0",
-                "w": "0x2bf7b6c573fd933bc89b9cd4921500cb28f4fe0f34152932fd7777bc920e1b4"
+                "s": "0x64d393473af2ebab736c579ad511bf439263e4740f9ad299498bda2e75b0e9"
             },
             "public_key": "0x3d8a9687c613b2be32b55c5c0460e012b592e2fbbb4fc281fb87b0d8c441b3e"
         },
@@ -45,7 +45,7 @@
         "token": "0x3003a65651d3b9fb2eff934a4416db301afd112a8492aaf8d7297fc87dcd9f4",
         "signature": {
             "r": "0x735fffa9bf371ca294c5f74c15b434684cfe7e9e0500e6a59589ef05c1fce13",
-            "w": "0x1593b9496b7572f7bae8028c66405e3d76132723affdb5e4e76aadb8c2ae04f"
+            "s": "0x1ddc49993ad678e2b5b80fb0e22a077b136353514f60edc3c2fc77d59dbd93e"
         },
         "public_key": "0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4"
     },

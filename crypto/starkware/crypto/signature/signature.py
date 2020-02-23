@@ -90,6 +90,10 @@ def private_to_stark_key(priv_key):
     return private_key_to_ec_point_on_stark_curve(priv_key)[0]
 
 
+def inv_mod_curve_size(x):
+    return div_mod(1, x, EC_ORDER)
+
+
 def sign(msg_hash, priv_key):
     # Note: msg_hash must be smaller than 2**N_ELEMENT_BITS_ECDSA.
     # Message whose hash is >= 2**N_ELEMENT_BITS_ECDSA cannot be signed.
@@ -123,8 +127,8 @@ def sign(msg_hash, priv_key):
             # Bad value. This fails with negligible probability.
             continue
 
-        # DIFF: Here we send w instead of its inverse.
-        return r, w
+        s = inv_mod_curve_size(w)
+        return r, s
 
 
 def mimic_ec_mult_air(m, point, shift_point):
@@ -144,7 +148,10 @@ def mimic_ec_mult_air(m, point, shift_point):
     return partial_sum
 
 
-def verify(msg_hash, r, w, public_key):
+def verify(msg_hash, r, s, public_key):
+    # Compute w = s^-1 (mod EC_ORDER).
+    w = inv_mod_curve_size(s)
+
     # Preassumptions:
     # DIFF: in classic ECDSA, we assert 1 <= r, w <= EC_ORDER-1.
     # Since r, w < 2**N_ELEMENT_BITS_ECDSA < EC_ORDER, we only need to verify r, w != 0.
@@ -161,8 +168,8 @@ def verify(msg_hash, r, w, public_key):
             return False
         assert pow(y, 2, FIELD_PRIME) == (
             pow(public_key, 3, FIELD_PRIME) + ALPHA * public_key + BETA) % FIELD_PRIME
-        return verify(msg_hash, r, w, (public_key, y)) or \
-            verify(msg_hash, r, w, (public_key, (-y) % FIELD_PRIME))
+        return verify(msg_hash, r, s, (public_key, y)) or \
+            verify(msg_hash, r, s, (public_key, (-y) % FIELD_PRIME))
     else:
         # The public key is provided as a point.
         # Verify it is on the curve.

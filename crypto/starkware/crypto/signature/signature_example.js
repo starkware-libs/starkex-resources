@@ -64,14 +64,13 @@ for (const hashTestData of [
         `Got: ${msg} Expected: ` + testData.meta_data.party_a_order.message_hash.substring(2));
 
     const msgSignature = starkwareCrypto.sign(keyPair, msg);
-    const { r } = msgSignature;
-    const w = msgSignature.s.invm(starkwareCrypto.ec.n);
+    const { r, s } = msgSignature;
 
     assert(starkwareCrypto.verify(publicKey, msg, msgSignature));
     assert(r.toString(16) === partyAOrder.signature.r.substring(2),
         `Got: ${r.toString(16)} Expected: ${partyAOrder.signature.r.substring(2)}`);
-    assert(w.toString(16) === partyAOrder.signature.w.substring(2),
-        `Got: ${w.toString(16)} Expected: ${partyAOrder.signature.w.substring(2)}`);
+    assert(s.toString(16) === partyAOrder.signature.s.substring(2),
+        `Got: ${s.toString(16)} Expected: ${partyAOrder.signature.s.substring(2)}`);
 
     // The following is the JSON representation of an order:
     console.log('Order JSON representation: ');
@@ -152,14 +151,13 @@ for (const hashTestData of [
         `Got: ${msg} Expected: ` + testData.meta_data.party_b_order.message_hash.substring(2));
 
     const msgSignature = starkwareCrypto.sign(keyPair, msg);
-    const { r } = msgSignature;
-    const w = msgSignature.s.invm(starkwareCrypto.ec.n);
+    const { r, s } = msgSignature;
 
     assert(starkwareCrypto.verify(publicKey, msg, msgSignature));
     assert(r.toString(16) === partyBOrder.signature.r.substring(2),
         `Got: ${r.toString(16)} Expected: ${partyBOrder.signature.r.substring(2)}`);
-    assert(w.toString(16) === partyBOrder.signature.w.substring(2),
-        `Got: ${w.toString(16)} Expected: ${partyBOrder.signature.w.substring(2)}`);
+    assert(s.toString(16) === partyBOrder.signature.s.substring(2),
+        `Got: ${s.toString(16)} Expected: ${partyBOrder.signature.s.substring(2)}`);
 
     // The following is the JSON representation of a settlement:
     console.log('Settlement JSON representation: ');
