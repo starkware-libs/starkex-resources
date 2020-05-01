@@ -167,7 +167,7 @@ class Committee:
                     logger.info(f'Waiting for batch {next_batch_id}')
                     await asyncio.sleep(self.polling_interval)
                     continue
-                assert await is_valid(availability_update), 'Third party validation failed.'
+                assert await is_valid(availability_update, next_batch_id), 'Third party validation failed.'
                 signature, availability_claim = await self.validate_data_availability(
                     next_batch_id, availability_update, self.validate_orders)
                 await self.availability_gateway.send_signature(
