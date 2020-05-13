@@ -22,9 +22,9 @@ import random
 import pytest
 
 from .signature import (
-    FIELD_PRIME, InvalidPublicKeyError, get_limit_order_msg, get_random_private_key,
-    get_transfer_msg, get_y_coordinate, pedersen_hash, private_key_to_ec_point_on_stark_curve,
-    private_to_stark_key, sign, verify)
+    EC_ORDER, FIELD_PRIME, N_ELEMENT_BITS_ECDSA, InvalidPublicKeyError, get_limit_order_msg,
+    get_random_private_key, get_transfer_msg, get_y_coordinate, pedersen_hash,
+    private_key_to_ec_point_on_stark_curve, private_to_stark_key, sign, verify)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,25 @@ def test_get_y_coordinate():
     assert public_key[1] in [y, (-y) % FIELD_PRIME]
     with pytest.raises(InvalidPublicKeyError):
         get_y_coordinate(0)
+
+
+def test_verify_size_failure():
+    max_msg = 2 ** N_ELEMENT_BITS_ECDSA - 1
+    max_r = 2 ** N_ELEMENT_BITS_ECDSA - 1
+    max_s = EC_ORDER - 2
+    stark_key = private_to_stark_key(get_random_private_key())
+    # Test invalid message length.
+    with pytest.raises(AssertionError, match='msg_hash = %s' % str(max_msg + 1)):
+        verify(max_msg + 1, max_r, max_s, stark_key)
+    # Test invalid r length.
+    with pytest.raises(AssertionError, match='r = %s' % str(max_r + 1)):
+        verify(max_msg, max_r + 1, max_s, stark_key)
+    # Test invalid w length.
+    with pytest.raises(AssertionError, match='w = %s' % str(max_s + 1)):
+        verify(max_msg, max_r, max_s + 1, stark_key)
+    # Test invalid s length.
+    with pytest.raises(AssertionError, match='s = %s' % str(max_s + 2)):
+        verify(max_msg, max_r, max_s + 2, stark_key)
 
 
 def test_ecdsa_signature():

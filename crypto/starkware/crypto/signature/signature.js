@@ -20,9 +20,17 @@ const { curves: eCurves, ec: EllipticCurve } = require('elliptic');
 const assert = require('assert');
 const constantPointsHex = require('./constant_points.json');
 
+// Equals 2**251 + 17 * 2**192 + 1.
 const prime = new BN('800000000000011000000000000000000000000000000000000000000000001', 16);
-exports.prime = prime;
+// Equals 2**251. This value limits msgHash and the signature parts.
+const maxEcdsaVal =
+    new BN('800000000000000000000000000000000000000000000000000000000000000', 16);
 
+// Generate BN of 1 and 0.
+const zeroBn = new BN('0', 16);
+const oneBn = new BN('1', 16);
+
+// Create a curve with stark curve parameters.
 const starkEc = new EllipticCurve(
     new eCurves.PresetCurve({
         type: 'short',
@@ -36,25 +44,45 @@ const starkEc = new EllipticCurve(
         g: constantPointsHex[1]
     })
 );
-exports.ec = starkEc;
 
 const constantPoints = constantPointsHex.map(coords => (
     starkEc.curve.point(new BN(coords[0], 16), new BN(coords[1], 16))));
-exports.constantPoints = constantPoints;
 const shiftPoint = constantPoints[0];
-exports.shiftPoint = shiftPoint;
 
+/*
+ Asserts input is equal to or greater then lowerBound and lower then upperBound.
+ Assert message specifies inputName.
+ input, lowerBound, and upperBound should be of type BN.
+ inputName should be a string.
+*/
+function assertLength(
+        input,
+        lowerBound,
+        upperBound,
+        inputName = ''
+) {
+    const messageSuffix = inputName === '' ? 'invalid length' : `invalid ${inputName} length`;
+    assert(
+        input.gte(lowerBound) && input.lt(upperBound), `Message not signable, ${messageSuffix}.`
+    );
+}
+
+/*
+ Full specification of the hash function can be found here:
+   https://starkware.co/starkex/docs/signatures.html#pedersen-hash-function
+ shiftPoint was added for technical reasons to make sure the zero point on the elliptic curve does
+ not appear during the computation. constantPoints are multiples by powers of 2 of the constant
+ points defined in the documentation.
+*/
 function pedersen(input) {
-    const zero = new BN('0');
-    const one = new BN('1');
     let point = shiftPoint;
     for (let i = 0; i < input.length; i++) {
         let x = new BN(input[i], 16);
-        assert(x.gte(zero) && x.lt(prime), 'Invalid input: ' + input[i]);
+        assert(x.gte(zeroBn) && x.lt(prime), 'Invalid input: ' + input[i]);
         for (let j = 0; j < 252; j++) {
             const pt = constantPoints[2 + i * 252 + j];
             assert(!point.getX().eq(pt.getX()));
-            if (x.and(one).toNumber() !== 0) {
+            if (x.and(oneBn).toNumber() !== 0) {
                 point = point.add(pt);
             }
             x = x.shrn(1);
@@ -62,18 +90,17 @@ function pedersen(input) {
     }
     return point.getX().toString(16);
 }
-exports.pedersen = pedersen;
 
-function signMsg(
-    instructionTypeBn,
-    vault0Bn,
-    vault1Bn,
-    amount0Bn,
-    amount1Bn,
-    nonceBn,
-    expirationTimestampBn,
-    token0,
-    token1OrPubKey
+function hashMsg(
+        instructionTypeBn,
+        vault0Bn,
+        vault1Bn,
+        amount0Bn,
+        amount1Bn,
+        nonceBn,
+        expirationTimestampBn,
+        token0,
+        token1OrPubKey
 ) {
     let packedMessage = instructionTypeBn;
     packedMessage = packedMessage.ushln(31).add(vault0Bn);
@@ -82,9 +109,13 @@ function signMsg(
     packedMessage = packedMessage.ushln(63).add(amount1Bn);
     packedMessage = packedMessage.ushln(31).add(nonceBn);
     packedMessage = packedMessage.ushln(22).add(expirationTimestampBn);
-    return pedersen([
+    const msgHash = pedersen([
         pedersen([token0, token1OrPubKey]), packedMessage.toString(16)
     ]);
+
+    const msgHashBN = new BN(msgHash, 16);
+    assertLength(msgHashBN, zeroBn, maxEcdsaVal, 'msgHash');
+    return msgHash;
 }
 
 /*
@@ -100,15 +131,15 @@ function signMsg(
  nonce - uint31 (as int)
  expirationTimestamp - uint22 (as int).
 */
-exports.getLimitOrderMsg = function(
-    vaultSell,
-    vaultBuy,
-    amountSell,
-    amountBuy,
-    tokenSell,
-    tokenBuy,
-    nonce,
-    expirationTimestamp
+function getLimitOrderMsgHash(
+        vaultSell,
+        vaultBuy,
+        amountSell,
+        amountBuy,
+        tokenSell,
+        tokenBuy,
+        nonce,
+        expirationTimestamp
 ) {
     assert(
         tokenSell.substring(0, 2) === '0x' && tokenBuy.substring(0, 2) === '0x',
@@ -145,7 +176,8 @@ exports.getLimitOrderMsg = function(
     assert(expirationTimestampBn.lt(twoPow22));
 
     const instructionType = zero;
-    return signMsg(instructionType,
+    return hashMsg(
+        instructionType,
         vaultSellBn,
         vaultBuyBn,
         amountSellBn,
@@ -153,8 +185,9 @@ exports.getLimitOrderMsg = function(
         nonceBn,
         expirationTimestampBn,
         tokenSell.substring(2),
-        tokenBuy.substring(2));
-};
+        tokenBuy.substring(2)
+    );
+}
 
 /*
  Serializes the transfer message in the canonical format expected by the verifier.
@@ -170,14 +203,14 @@ exports.getLimitOrderMsg = function(
  receiverPublicKey - uint256 field element strictly less than the prime (as hex string with 0x)
  expirationTimestamp - uint22 (as int).
 */
-exports.getTransferMsg = function(
-    amount,
-    nonce,
-    senderVaultId,
-    token,
-    receiverVaultId,
-    receiverPublicKey,
-    expirationTimestamp
+function getTransferMsgHash(
+        amount,
+        nonce,
+        senderVaultId,
+        token,
+        receiverVaultId,
+        receiverPublicKey,
+        expirationTimestamp
 ) {
     assert(
         token.substring(0, 2) === '0x' && receiverPublicKey.substring(0, 2) === '0x',
@@ -212,7 +245,7 @@ exports.getTransferMsg = function(
     assert(expirationTimestampBn.lt(twoPow22));
 
     const instructionType = one;
-    return signMsg(
+    return hashMsg(
         instructionType,
         senderVaultIdBn,
         receiverVaultIdBn,
@@ -223,38 +256,68 @@ exports.getTransferMsg = function(
         token.substring(2),
         receiverPublicKey.substring(2)
     );
-};
+}
 
 /*
- The function _truncateToN in lib/elliptic/ec/index.js does a shift-right of 4 bits
- in some cases. This function does the opposite operation so that
-   _truncateToN(fixMessage(msg)) == msg.
+ The function _truncateToN in lib/elliptic/ec/index.js does a shift-right of delta bits,
+ if delta is positive, where
+   delta = msgHash.byteLength() * 8 - starkEx.n.bitLength().
+ This function does the opposite operation so that
+   _truncateToN(fixMsgHashLen(msgHash)) == msgHash.
 */
-function fixMessage(msg) {
+function fixMsgHashLen(msgHash) {
     // Convert to BN to remove leading zeros.
-    msg = new BN(msg, 16).toString(16);
+    msgHash = new BN(msgHash, 16).toString(16);
 
-    if (msg.length <= 62) {
-        // In this case, msg should not be transformed, as the byteLength() is at most 31,
+    if (msgHash.length <= 62) {
+        // In this case, msgHash should not be transformed, as the byteLength() is at most 31,
         // so delta < 0 (see _truncateToN).
-        return msg;
+        return msgHash;
     }
-    assert(msg.length === 63);
+    assert(msgHash.length === 63);
     // In this case delta will be 4 so we perform a shift-left of 4 bits by adding a zero.
-    return msg + '0';
+    return msgHash + '0';
 }
 
 /*
  Signs a message using the provided key.
- key should be an elliptic.keyPair with a valid private key.
+ privateKey should be an elliptic.keyPair with a valid private key.
  Returns an elliptic.Signature.
 */
-exports.sign = (keyPair, msg) => keyPair.sign(fixMessage(msg));
+function sign(privateKey, msgHash) {
+    const msgHashBN = new BN(msgHash, 16);
+    // Verify message hash has valid length.
+    assertLength(msgHashBN, zeroBn, maxEcdsaVal, 'msgHash');
+    const msgSignature = privateKey.sign(fixMsgHashLen(msgHash));
+    const { r, s } = msgSignature;
+    const w = s.invm(starkEc.n);
+    // Verify signature has valid length.
+    assertLength(r, oneBn, maxEcdsaVal, 'r');
+    assertLength(s, oneBn, starkEc.n, 's');
+    assertLength(w, oneBn, maxEcdsaVal, 'w');
+    return msgSignature;
+}
 
 /*
  Verifies a message using the provided key.
- key should be an elliptic.keyPair with a valid public key.
+ publicKey should be an elliptic.keyPair with a valid public key.
  msgSignature should be an elliptic.Signature.
  Returns a boolean true if the verification succeeds.
 */
-exports.verify = (keyPair, msg, msgSignature) => keyPair.verify(fixMessage(msg), msgSignature);
+function verify(publicKey, msgHash, msgSignature) {
+    const msgHashBN = new BN(msgHash, 16);
+    // Verify message hash has valid length.
+    assertLength(msgHashBN, zeroBn, maxEcdsaVal, 'msgHash');
+    const { r, s } = msgSignature;
+    const w = s.invm(starkEc.n);
+    // Verify signature has valid length.
+    assertLength(r, oneBn, maxEcdsaVal, 'r');
+    assertLength(s, oneBn, starkEc.n, 's');
+    assertLength(w, oneBn, maxEcdsaVal, 'w');
+    return publicKey.verify(fixMsgHashLen(msgHash), msgSignature);
+}
+
+module.exports = {
+    prime, ec: starkEc, constantPoints, shiftPoint, maxEcdsaVal,  // Data
+    pedersen, getLimitOrderMsgHash, getTransferMsgHash, sign, verify // Function
+};

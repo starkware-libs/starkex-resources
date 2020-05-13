@@ -1,0 +1,14 @@
+{
+    "env": {
+        "mocha": true
+    },
+    "rules": {
+        "max-lines-per-function": [
+            "error",
+            {
+                "max": 300,
+                "IIFEs": true
+            }
+        ]
+    }
+}

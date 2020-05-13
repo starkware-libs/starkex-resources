@@ -8,12 +8,16 @@
     },
     "extends": "eslint:recommended",
     "globals": {
+        "BigInt": "readonly",
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2018
     },
+    "ignorePatterns": [
+        "node_modules/"
+    ],
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-newline": [
@@ -71,7 +75,7 @@
                 "ignoreConsecutiveComments": true
             }
         ],
-        "class-methods-use-this": "warn",
+        "class-methods-use-this": "off",
         "comma-dangle": "error",
         "comma-spacing": [
             "error",
@@ -164,7 +168,14 @@
         ],
         "indent": [
             "error",
-            4
+            4,
+            {
+                "SwitchCase": 1,
+                "FunctionDeclaration": {
+                    "body": 1,
+                    "parameters": 2
+                }
+            }
         ],
         "indent-legacy": "off",
         "init-declarations": [
@@ -222,7 +233,7 @@
         ],
         "max-lines": [
             "error",
-            300
+            500
         ],
         "max-lines-per-function": [
             "error",
@@ -343,12 +354,7 @@
         "no-octal-escape": "error",
         "no-param-reassign": "off",
         "no-path-concat": "off",
-        "no-plusplus": [
-            "error",
-            {
-                "allowForLoopAfterthoughts": true
-            }
-        ],
+        "no-plusplus": "off",
         "no-process-env": "error",
         "no-process-exit": "error",
         "no-proto": "error",
@@ -372,7 +378,7 @@
         "no-throw-literal": "error",
         "no-trailing-spaces": "error",
         "no-undef": "error",
-        "no-undef-init": "error",
+        "no-undef-init": "off",
         "no-undefined": "off",
         "no-underscore-dangle": "error",
         "no-unmodified-loop-condition": "error",
@@ -394,7 +400,7 @@
         "no-useless-return": "error",
         "no-var": "error",
         "no-void": "error",
-        "no-warning-comments": "error",
+        "no-warning-comments": "warn",
         "no-whitespace-before-property": "error",
         "nonblock-statement-body-position": "error",
         "object-curly-newline": [
@@ -460,7 +466,7 @@
             "error",
             "single"
         ],
-        "radix": "error",
+        "radix": "off",
         "require-atomic-updates": "error",
         "require-await": "error",
         "require-unicode-regexp": "off",

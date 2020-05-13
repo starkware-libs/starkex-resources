@@ -35,7 +35,7 @@ CONSTANT_POINTS = PEDERSEN_PARAMS['CONSTANT_POINTS']
 N_ELEMENT_BITS_ECDSA = math.floor(math.log(FIELD_PRIME, 2))
 assert N_ELEMENT_BITS_ECDSA == 251
 
-N_ELEMENT_BITS_HASH = math.ceil(math.log(FIELD_PRIME, 2))
+N_ELEMENT_BITS_HASH = FIELD_PRIME.bit_length()
 assert N_ELEMENT_BITS_HASH == 252
 
 # Elliptic curve parameters.
@@ -150,6 +150,7 @@ def mimic_ec_mult_air(m, point, shift_point):
 
 def verify(msg_hash, r, s, public_key):
     # Compute w = s^-1 (mod EC_ORDER).
+    assert 1 <= s < EC_ORDER, 's = %s' % s
     w = inv_mod_curve_size(s)
 
     # Preassumptions:
@@ -157,7 +158,7 @@ def verify(msg_hash, r, s, public_key):
     # Since r, w < 2**N_ELEMENT_BITS_ECDSA < EC_ORDER, we only need to verify r, w != 0.
     assert 1 <= r < 2**N_ELEMENT_BITS_ECDSA, 'r = %s' % r
     assert 1 <= w < 2**N_ELEMENT_BITS_ECDSA, 'w = %s' % w
-    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA
+    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, 'msg_hash = %s' % msg_hash
 
     if isinstance(public_key, int):
         # Only the x coordinate of the point is given, check the two possibilities for the y

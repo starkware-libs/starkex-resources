@@ -1,10 +1,10 @@
 {
   "name": "starkware_crypto",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Signatures, keys and Pedersen hash on STARK friendly elliptic curve",
   "main": "signature.js",
   "scripts": {
-    "test": "node signature_test.js && node signature_example.js > /dev/null",
+    "test": "mocha",
     "lint": "eslint -f unix --ext=.js ./"
   },
   "keywords": [
@@ -17,10 +17,9 @@
   ],
   "files": [
     "signature.js",
-    "signature_test.js",
+    "test/signature_test.js",
     "signature_example.js",
     "constant_points.json",
-    ".eslintrc.json",
     "signature_test_data.json"
   ],
   "dependencies": {
@@ -34,7 +33,9 @@
     "minimalistic-crypto-utils": "^1.0.0"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "chai": "^4.2.0",
+    "eslint": "^6.8.0",
+    "mocha": "^7.1.0"
   },
   "author": "StarkWare Industries Ltd.",
   "license": "Apache-2.0"

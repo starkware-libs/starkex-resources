@@ -19,21 +19,6 @@ const assert = require('assert');
 const testData = require('./signature_test_data.json');
 
 //=================================================================================================
-// Test Pedersen Hash
-//=================================================================================================
-
-for (const hashTestData of [
-    testData.hash_test.pedersen_hash_data_1, testData.hash_test.pedersen_hash_data_2
-]) {
-    const result = starkwareCrypto.pedersen([
-        hashTestData.input_1.substring(2),
-        hashTestData.input_2.substring(2)
-    ]);
-    const expectedResult = hashTestData.output.substring(2);
-    assert(result === expectedResult, `Got: ${result}, Expected: ${expectedResult}`);
-}
-
-//=================================================================================================
 // Example: Signing a StarkEx Order:
 //=================================================================================================
 {
@@ -44,12 +29,12 @@ for (const hashTestData of [
 
     assert(
         publicKeyX.toString(16) === testData.settlement.party_a_order.public_key.substring(2),
-        `Got: ${publicKeyX.toString(16)}
+        `Got: ${publicKeyX.toString(16)}.
         Expected: ${testData.settlement.party_a_order.public_key.substring(2)}`
     );
 
     const { party_a_order: partyAOrder } = testData.settlement;
-    const msg = starkwareCrypto.getLimitOrderMsg(
+    const msgHash = starkwareCrypto.getLimitOrderMsgHash(
         partyAOrder.vault_id_sell, // - vault_sell (uint31)
         partyAOrder.vault_id_buy, // - vault_buy (uint31)
         partyAOrder.amount_sell, // - amount_sell (uint63 decimal str)
@@ -60,17 +45,17 @@ for (const hashTestData of [
         partyAOrder.expiration_timestamp // - expiration_timestamp (uint22)
     );
 
-    assert(msg === testData.meta_data.party_a_order.message_hash.substring(2),
-        `Got: ${msg} Expected: ` + testData.meta_data.party_a_order.message_hash.substring(2));
+    assert(msgHash === testData.meta_data.party_a_order.message_hash.substring(2),
+        `Got: ${msgHash}. Expected: ` + testData.meta_data.party_a_order.message_hash.substring(2));
 
-    const msgSignature = starkwareCrypto.sign(keyPair, msg);
+    const msgSignature = starkwareCrypto.sign(keyPair, msgHash);
     const { r, s } = msgSignature;
 
-    assert(starkwareCrypto.verify(publicKey, msg, msgSignature));
+    assert(starkwareCrypto.verify(publicKey, msgHash, msgSignature));
     assert(r.toString(16) === partyAOrder.signature.r.substring(2),
-        `Got: ${r.toString(16)} Expected: ${partyAOrder.signature.r.substring(2)}`);
+        `Got: ${r.toString(16)}. Expected: ${partyAOrder.signature.r.substring(2)}`);
     assert(s.toString(16) === partyAOrder.signature.s.substring(2),
-        `Got: ${s.toString(16)} Expected: ${partyAOrder.signature.s.substring(2)}`);
+        `Got: ${s.toString(16)}. Expected: ${partyAOrder.signature.s.substring(2)}`);
 
     // The following is the JSON representation of an order:
     console.log('Order JSON representation: ');
@@ -87,7 +72,7 @@ for (const hashTestData of [
 
     // Verify Deserialization.
     const pubKeyDeserialized = starkwareCrypto.ec.keyFromPublic({ x: pubXStr, y: pubYStr }, 'hex');
-    assert(starkwareCrypto.verify(pubKeyDeserialized, msg, msgSignature));
+    assert(starkwareCrypto.verify(pubKeyDeserialized, msgHash, msgSignature));
 }
 
 //=================================================================================================
@@ -100,11 +85,11 @@ for (const hashTestData of [
     const publicKeyX = publicKey.pub.getX();
 
     assert(publicKeyX.toString(16) === testData.transfer_order.public_key.substring(2),
-        `Got: ${publicKeyX.toString(16)}
+        `Got: ${publicKeyX.toString(16)}.
         Expected: ${testData.transfer_order.public_key.substring(2)}`);
 
     const transfer = testData.transfer_order;
-    const msg = starkwareCrypto.getTransferMsg(
+    const msgHash = starkwareCrypto.getTransferMsgHash(
         transfer.amount, // - amount (uint63 decimal str)
         transfer.nonce, // - nonce (uint31)
         transfer.sender_vault_id, // - sender_vault_id (uint31)
@@ -114,8 +99,9 @@ for (const hashTestData of [
         transfer.expiration_timestamp // - expiration_timestamp (uint22)
     );
 
-    assert(msg === testData.meta_data.transfer_order.message_hash.substring(2),
-        `Got: ${msg} Expected: ` + testData.meta_data.transfer_order.message_hash.substring(2));
+    assert(msgHash === testData.meta_data.transfer_order.message_hash.substring(2),
+        `Got: ${msgHash}. Expected: ` +
+        testData.meta_data.transfer_order.message_hash.substring(2));
 
     // The following is the JSON representation of a transfer:
     console.log('Transfer JSON representation: ');
@@ -132,11 +118,11 @@ for (const hashTestData of [
     const publicKeyX = publicKey.pub.getX();
 
     assert(publicKeyX.toString(16) === testData.settlement.party_b_order.public_key.substring(2),
-        `Got: ${publicKeyX.toString(16)}
+        `Got: ${publicKeyX.toString(16)}.
         Expected: ${testData.settlement.party_b_order.public_key.substring(2)}`);
 
     const { party_b_order: partyBOrder } = testData.settlement;
-    const msg = starkwareCrypto.getLimitOrderMsg(
+    const msgHash = starkwareCrypto.getLimitOrderMsgHash(
         partyBOrder.vault_id_sell, // - vault_sell (uint31)
         partyBOrder.vault_id_buy, // - vault_buy (uint31)
         partyBOrder.amount_sell, // - amount_sell (uint63 decimal str)
@@ -147,17 +133,17 @@ for (const hashTestData of [
         partyBOrder.expiration_timestamp // - expiration_timestamp (uint22)
     );
 
-    assert(msg === testData.meta_data.party_b_order.message_hash.substring(2),
-        `Got: ${msg} Expected: ` + testData.meta_data.party_b_order.message_hash.substring(2));
+    assert(msgHash === testData.meta_data.party_b_order.message_hash.substring(2),
+        `Got: ${msgHash}. Expected: ` + testData.meta_data.party_b_order.message_hash.substring(2));
 
-    const msgSignature = starkwareCrypto.sign(keyPair, msg);
+    const msgSignature = starkwareCrypto.sign(keyPair, msgHash);
     const { r, s } = msgSignature;
 
-    assert(starkwareCrypto.verify(publicKey, msg, msgSignature));
+    assert(starkwareCrypto.verify(publicKey, msgHash, msgSignature));
     assert(r.toString(16) === partyBOrder.signature.r.substring(2),
-        `Got: ${r.toString(16)} Expected: ${partyBOrder.signature.r.substring(2)}`);
+        `Got: ${r.toString(16)}. Expected: ${partyBOrder.signature.r.substring(2)}`);
     assert(s.toString(16) === partyBOrder.signature.s.substring(2),
-        `Got: ${s.toString(16)} Expected: ${partyBOrder.signature.s.substring(2)}`);
+        `Got: ${s.toString(16)}. Expected: ${partyBOrder.signature.s.substring(2)}`);
 
     // The following is the JSON representation of a settlement:
     console.log('Settlement JSON representation: ');
