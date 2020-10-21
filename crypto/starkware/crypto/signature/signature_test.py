@@ -18,13 +18,15 @@ import json
 import logging
 import os
 import random
+from typing import Dict
 
 import pytest
 
 from .signature import (
-    EC_ORDER, FIELD_PRIME, N_ELEMENT_BITS_ECDSA, InvalidPublicKeyError, get_limit_order_msg,
-    get_random_private_key, get_transfer_msg, get_y_coordinate, pedersen_hash,
-    private_key_to_ec_point_on_stark_curve, private_to_stark_key, sign, verify)
+    EC_ORDER, FIELD_PRIME, N_ELEMENT_BITS_ECDSA, InvalidPublicKeyError, get_random_private_key,
+    get_y_coordinate, pedersen_hash, private_key_to_ec_point_on_stark_curve, private_to_stark_key,
+    sign, verify)
+from .starkex_messages import get_limit_order_msg, get_transfer_msg
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +75,14 @@ def test_ecdsa_signature():
 
 
 @pytest.fixture
-def data_file():
-    json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'signature_test_data.json')
+def data_file() -> dict:
+    json_file = os.path.join(os.path.dirname(__file__), 'signature_test_data.json')
+    return json.load(open(json_file))
+
+
+@pytest.fixture
+def key_file() -> Dict[str, str]:
+    json_file = os.path.join(os.path.dirname(__file__), 'keys_precomputed.json')
     return json.load(open(json_file))
 
 
@@ -89,7 +97,7 @@ def test_pedersen_hash(data_file, pedersen_hash_data):
         int(data_file['hash_test'][pedersen_hash_data]['output'], 16)
 
 
-def test_order_message(data_file):
+def test_order_message(data_file: dict):
     """
     Tests order message. Parameters are from signature_test_data.json.
     """
@@ -103,19 +111,40 @@ def test_order_message(data_file):
     assert limit_order_msg == int(data_file['meta_data']['party_a_order']['message_hash'], 16)
 
 
-def test_transfer_message(data_file):
+def read_transfer_data(transfer_dict: dict) -> Dict[str, int]:
+    """
+    Transfers a dict of raw data representing a transfer, to an input dict for the
+    `get_transfer_msg` function.
+    """
+    return {'amount': int(transfer_dict['amount']), 'nonce': int(transfer_dict['nonce']),
+            'sender_vault_id': int(transfer_dict['sender_vault_id']),
+            'token': int(transfer_dict['token'], 16),
+            'receiver_vault_id': int(transfer_dict['target_vault_id']),
+            'receiver_public_key': int(transfer_dict['target_public_key'], 16),
+            'expiration_timestamp': transfer_dict['expiration_timestamp']}
+
+
+def test_transfer_message(data_file: dict):
     """
     Tests transfer message. Parameters are from signature_test_data.json.
     """
-    transfer = data_file['transfer_order']
-    transfer_msg = get_transfer_msg(
-        amount=int(transfer['amount']), nonce=1,
-        sender_vault_id=int(transfer['sender_vault_id']),
-        token=int(transfer['token'], 16),
-        receiver_vault_id=int(transfer['target_vault_id']),
-        receiver_public_key=int(transfer['target_public_key'], 16),
-        expiration_timestamp=transfer['expiration_timestamp'])
-    assert transfer_msg == int(data_file['meta_data']['transfer_order']['message_hash'], 16)
+    key = 'transfer_order'
+    data = read_transfer_data(data_file[key])
+    transfer_msg = get_transfer_msg(**data)
+
+    assert transfer_msg == int(data_file['meta_data'][key]['message_hash'], 16)
+
+
+def test_conditional_transfer_message(data_file: dict):
+    """
+    Tests conditional transfer message. Parameters are from signature_test_data.json.
+    """
+    key = 'conditional_transfer_order'
+    data = read_transfer_data(data_file[key])
+    conditional_transfer_msg = get_transfer_msg(
+        condition=int(data_file[key]['condition'], 16), **data)
+
+    assert conditional_transfer_msg == int(data_file['meta_data'][key]['message_hash'], 16)
 
 
 @pytest.mark.parametrize('order_data', ['party_a_order', 'party_b_order'])
@@ -123,6 +152,7 @@ def test_limit_order_signing_example(data_file, order_data):
     """
     Tests signing limit order. Parameters are from signature_test_data.json.
     """
+    msg_hash = int(data_file['meta_data'][order_data]['message_hash'], 16)
     order = data_file['settlement'][order_data]
     private_key = int(data_file['meta_data'][order_data]['private_key'], 16)
     public_key = private_to_stark_key(private_key)
@@ -133,27 +163,85 @@ def test_limit_order_signing_example(data_file, order_data):
         nonce=int(order['nonce']),
         expiration_timestamp=order['expiration_timestamp'])
     r, s = sign(msg, private_key)
+
+    assert(msg == msg_hash)
+    assert(hex(r) == order['signature']['r'])
+    assert(hex(s) == order['signature']['s'])
     assert verify(msg, r, s, public_key)
 
-    r = int(order['signature']['r'], 16)
-    s = int(order['signature']['s'], 16)
-    assert verify(msg, r, s, public_key)
 
-
-def test_transfer_signing_example(data_file):
+def test_transfer_signing_example(data_file: dict):
     """
     Tests signing transfer. Parameters are from signature_test_data.json.
     """
     private_key = int(data_file['meta_data']['party_a_order']['private_key'], 16)
     public_key = private_to_stark_key(private_key)
-    transfer = data_file['transfer_order']
-    transfer_msg = get_transfer_msg(
-        amount=int(transfer['amount']), nonce=int(transfer['nonce']),
-        sender_vault_id=int(transfer['sender_vault_id']),
-        token=int(transfer['token'], 16),
-        receiver_vault_id=int(transfer['target_vault_id']),
-        receiver_public_key=int(transfer['target_public_key'], 16),
-        expiration_timestamp=transfer['expiration_timestamp'])
+    key = 'transfer_order'
+    data = read_transfer_data(data_file[key])
+    transfer_msg = get_transfer_msg(**data)
+
     r, s = sign(transfer_msg, private_key)
     assert verify(transfer_msg, r, s, public_key)
     logger.info(f'transfer_msg signature: r: {r:x} s: {s:x}')
+
+
+def test_conditional_transfer_signing_example(data_file: dict):
+    """
+    Tests signing conditional transfer. Parameters are from signature_test_data.json.
+    """
+    private_key = int(data_file['meta_data']['conditional_transfer_order']['private_key'], 16)
+    public_key = private_to_stark_key(private_key)
+    key = 'conditional_transfer_order'
+    data = read_transfer_data(data_file[key])
+    conditional_transfer_msg = get_transfer_msg(
+        condition=int(data_file[key]['condition'], 16), **data)
+    r, s = sign(conditional_transfer_msg, private_key)
+    assert verify(conditional_transfer_msg, r, s, public_key)
+    logger.info(f'conditional_transfer_msg signature: r: {r:x} s: {s:x}')
+
+
+def test_pub_key_precomputed(key_file: Dict[str, str]):
+    for private, public in key_file.items():
+        assert public == hex(private_to_stark_key(int(private, 16)))
+
+
+@pytest.fixture
+def test_vector() -> dict:
+    json_file = os.path.join(os.path.dirname(__file__), 'rfc6979_signature_test_vector.json')
+    return json.load(open(json_file))
+
+
+def test_rfc6979_signatures(test_vector: dict):
+    """
+    Test deterministic signing based on the RFC-6979 standard with a test vector common
+    to several implementations
+    """
+    private_key = int(test_vector['private_key'], 16)
+    public_key = private_to_stark_key(private_key)
+    for message in test_vector['messages']:
+        msg_hash = int(message['hash'], 16)
+        expected_r = int(message['r'])
+        expected_s = int(message['s'])
+        real_r, real_s = sign(msg_hash, private_key)
+        assert(expected_r == real_r)
+        assert(expected_s == real_s)
+        assert verify(msg_hash, real_r, real_s, public_key)
+
+
+def test_signature_with_seed_works(test_vector: dict):
+    """
+    Test that the code produces a valid signature when there is a nonce given - so nothing
+    breaks if we have to resample the randomness
+    Also test that the signatures is different than the signature without a nonce,
+    to make sure nonce affects the signature
+    """
+    private_key = int(test_vector['private_key'], 16)
+    public_key = private_to_stark_key(private_key)
+    for message in test_vector['messages']:
+        msg_hash = int(message['hash'], 16)
+        seedless_r = int(message['r'])
+        seedless_s = int(message['s'])
+        real_r, real_s = sign(msg_hash, private_key, seed=1)
+        assert verify(msg_hash, real_r, real_s, public_key)
+        assert not (real_r == seedless_r)
+        assert not (real_s == seedless_s)

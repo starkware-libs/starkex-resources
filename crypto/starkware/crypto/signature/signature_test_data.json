@@ -49,11 +49,25 @@
         },
         "public_key": "0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4"
     },
+    "conditional_transfer_order": {
+        "amount": "2154549703648910716",
+        "expiration_timestamp": 438953,
+        "nonce": 1,
+        "target_public_key": "0x5fa3383597691ea9d827a79e1a4f0f7949435ced18ca9619de8ab97e661020",
+        "target_vault_id": 21,
+        "sender_vault_id": 34,
+        "token": "0x3003a65651d3b9fb2eff934a4416db301afd112a8492aaf8d7297fc87dcd9f4",
+        "signature": {
+            "r": "0x735fffa9bf371ca294c5f74c15b434684cfe7e9e0500e6a59589ef05c1fce13",
+            "s": "0x1ddc49993ad678e2b5b80fb0e22a077b136353514f60edc3c2fc77d59dbd93e"
+        },
+        "public_key": "0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4",
+        "condition": "0x318ff6d26cf3175c77668cd6434ab34d31e59f806a6a7c06d08215bccb7eaf8"
+    },
     "meta_data": {
         "party_a_order": {
             "message_hash": "0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f",
-            "private_key": "0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc",
-            "order_id": "4142879348967097428"
+            "private_key": "0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"
         },
         "party_b_order": {
             "message_hash": "0x6adb14408452ede28b89f40ca1847eca4de6a2dd6eb2c7d6dc5584f9399586",
@@ -61,8 +75,11 @@
         },
         "transfer_order": {
             "message_hash": "0x6366b00c218fb4c8a8b142ca482145e8513c78e00faa0de76298ba14fc37ae7",
-            "private_key": "0x7cc2767a160d4ea112b436dc6f79024db70b26b11ed7aa2cb6d7eef19ace703",
-            "order_id": "7162605823528514760"
+            "private_key": "0x7cc2767a160d4ea112b436dc6f79024db70b26b11ed7aa2cb6d7eef19ace703"
+        },
+        "conditional_transfer_order": {
+            "message_hash": "0xfa5f0ad1ebff93c9e6474379a213ba1e1f9e42f5f1cb361b0327e073720384",
+            "private_key": "0x7cc2767a160d4ea112b436dc6f79024db70b26b11ed7aa2cb6d7eef19ace703"
         }
     },
     "hash_test": {

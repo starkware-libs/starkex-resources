@@ -1,6 +1,6 @@
-
 from fastecdsa.curve import Curve
 from fastecdsa.point import Point
+
 from starkware.crypto.signature import (
     ALPHA, BETA, CONSTANT_POINTS, EC_ORDER, FIELD_PRIME, N_ELEMENT_BITS_HASH, SHIFT_POINT)
 

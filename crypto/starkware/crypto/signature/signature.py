@@ -14,12 +14,16 @@
 # and limitations under the License.                                          #
 ###############################################################################
 
+import hashlib
 import json
 import math
 import os
 import random
+from typing import Optional, Tuple, Union
 
-from .math_utils import div_mod, ec_add, ec_double, ec_mult, is_quad_residue, sqrt_mod
+from ecdsa.rfc6979 import generate_k
+
+from .math_utils import ECPoint, div_mod, ec_add, ec_double, ec_mult, is_quad_residue, sqrt_mod
 
 PEDERSEN_HASH_POINT_FILENAME = os.path.join(
     os.path.dirname(__file__), 'pedersen_params.json')
@@ -42,7 +46,7 @@ assert N_ELEMENT_BITS_HASH == 252
 assert 2**N_ELEMENT_BITS_ECDSA < EC_ORDER < FIELD_PRIME
 
 SHIFT_POINT = CONSTANT_POINTS[0]
-MINUS_SHIFT_POINT = [SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1]]
+MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
 EC_GEN = CONSTANT_POINTS[1]
 
 assert SHIFT_POINT == [0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804,
@@ -55,13 +59,16 @@ assert EC_GEN == [0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943c
 # ECDSA #
 #########
 
+# A type for the digital signature.
+ECSignature = Tuple[int, int]
+
 
 class InvalidPublicKeyError(Exception):
     def __init__(self):
         super().__init__('Given x coordinate does not represent any point on the elliptic curve.')
 
 
-def get_y_coordinate(stark_key_x_coordinate):
+def get_y_coordinate(stark_key_x_coordinate: int) -> int:
     """
     Given the x coordinate of a stark_key, returns a possible y coordinate such that together the
     point (x,y) is on the curve.
@@ -76,25 +83,41 @@ def get_y_coordinate(stark_key_x_coordinate):
     return sqrt_mod(y_squared, FIELD_PRIME)
 
 
-def get_random_private_key():
+def get_random_private_key() -> int:
     # NOTE: It is IMPORTANT to use a strong random function here.
     return random.randint(1, EC_ORDER - 1)
 
 
-def private_key_to_ec_point_on_stark_curve(priv_key):
+def private_key_to_ec_point_on_stark_curve(priv_key: int) -> ECPoint:
     assert 0 < priv_key < EC_ORDER
     return ec_mult(priv_key, EC_GEN, ALPHA, FIELD_PRIME)
 
 
-def private_to_stark_key(priv_key):
+def private_to_stark_key(priv_key: int) -> int:
     return private_key_to_ec_point_on_stark_curve(priv_key)[0]
 
 
-def inv_mod_curve_size(x):
+def inv_mod_curve_size(x: int) -> int:
     return div_mod(1, x, EC_ORDER)
 
 
-def sign(msg_hash, priv_key):
+def generate_k_rfc6979(msg_hash: int, priv_key: int, seed: Optional[int] = None) -> int:
+    # Pad the message hash, for consistency with the elliptic.js library.
+    if 1 <= msg_hash.bit_length() % 8 <= 4 and msg_hash.bit_length() >= 248:
+        # Only if we are one-nibble short:
+        msg_hash *= 16
+
+    if seed is None:
+        extra_entropy = b''
+    else:
+        extra_entropy = seed.to_bytes(math.ceil(seed.bit_length() / 8), 'big')
+
+    return generate_k(EC_ORDER, priv_key, hashlib.sha256,
+                      msg_hash.to_bytes(math.ceil(msg_hash.bit_length() / 8), 'big'),
+                      extra_entropy=extra_entropy)
+
+
+def sign(msg_hash: int, priv_key: int, seed: Optional[int] = None) -> ECSignature:
     # Note: msg_hash must be smaller than 2**N_ELEMENT_BITS_ECDSA.
     # Message whose hash is >= 2**N_ELEMENT_BITS_ECDSA cannot be signed.
     # This happens with a very small probability.
@@ -104,10 +127,12 @@ def sign(msg_hash, priv_key):
     # and there is a negligible probability a drawn k cannot be used for signing.
     # This is why we have this loop.
     while True:
-        # NOTE: It is IMPORTANT to use a strong random function here
-        # or use a similar technique as in RFC6979
-        # (pseudo-random defined by hash and secret-key).
-        k = random.randint(1, EC_ORDER - 1)
+        k = generate_k_rfc6979(msg_hash, priv_key, seed)
+        # Update seed for next iteration in case the value of k is bad.
+        if seed is None:
+            seed = 1
+        else:
+            seed += 1
 
         # Cannot fail because 0 < k < EC_ORDER and EC_ORDER is prime.
         x = ec_mult(k, EC_GEN, ALPHA, FIELD_PRIME)[0]
@@ -131,7 +156,7 @@ def sign(msg_hash, priv_key):
         return r, s
 
 
-def mimic_ec_mult_air(m, point, shift_point):
+def mimic_ec_mult_air(m: int, point: ECPoint, shift_point: ECPoint) -> ECPoint:
     """
     Computes m * point + shift_point using the same steps like the AIR and throws an exception if
     and only if the AIR errors.
@@ -148,7 +173,7 @@ def mimic_ec_mult_air(m, point, shift_point):
     return partial_sum
 
 
-def verify(msg_hash, r, s, public_key):
+def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bool:
     # Compute w = s^-1 (mod EC_ORDER).
     assert 1 <= s < EC_ORDER, 's = %s' % s
     w = inv_mod_curve_size(s)
@@ -201,11 +226,11 @@ def verify(msg_hash, r, s, public_key):
 # Pedersen hash #
 #################
 
-def pedersen_hash(*elements):
+def pedersen_hash(*elements: int) -> int:
     return pedersen_hash_as_point(*elements)[0]
 
 
-def pedersen_hash_as_point(*elements):
+def pedersen_hash_as_point(*elements: int) -> ECPoint:
     """
     Similar to pedersen_hash but also returns the y coordinate of the resulting EC point.
     This function is used for testing.
@@ -222,60 +247,3 @@ def pedersen_hash_as_point(*elements):
             x >>= 1
         assert x == 0
     return point
-
-#############################
-# party_a/party_b signature #
-#############################
-
-
-def get_msg(instruction_type, vault0, vault1, amount0, amount1, token0,
-            token1_or_pub_key, nonce, expiration_timestamp, hash=pedersen_hash):
-    """
-    Creates a message to sign on.
-    """
-    packed_message = instruction_type
-    packed_message = packed_message * 2**31 + vault0
-    packed_message = packed_message * 2**31 + vault1
-    packed_message = packed_message * 2**63 + amount0
-    packed_message = packed_message * 2**63 + amount1
-    packed_message = packed_message * 2**31 + nonce
-    packed_message = packed_message * 2**22 + expiration_timestamp
-    return hash(hash(token0, token1_or_pub_key), packed_message)
-
-
-def get_limit_order_msg(vault_sell, vault_buy, amount_sell, amount_buy, token_sell,
-                        token_buy, nonce, expiration_timestamp, hash=pedersen_hash):
-    """
-    party_a sells amount_sell coins of token_sell from vault_sell.
-    party_a buys amount_buy coins of token_buy into vault_buy.
-    """
-    assert 0 <= vault_sell < 2**31
-    assert 0 <= vault_buy < 2**31
-    assert 0 <= amount_sell < 2**63
-    assert 0 <= amount_buy < 2**63
-    assert 0 <= token_sell < FIELD_PRIME
-    assert 0 <= token_buy < FIELD_PRIME
-    assert 0 <= nonce < 2**31
-    assert 0 <= expiration_timestamp < 2**22
-
-    instruction_type = 0
-    return get_msg(instruction_type, vault_sell, vault_buy, amount_sell, amount_buy, token_sell,
-                   token_buy, nonce, expiration_timestamp, hash=hash)
-
-
-def get_transfer_msg(amount, nonce, sender_vault_id, token, receiver_vault_id,
-                     receiver_public_key, expiration_timestamp, hash=pedersen_hash):
-    """
-    Transfer `amount` of `token` from `sender_vault_id` to `receiver_vault_id`.
-    """
-    assert 0 <= sender_vault_id < 2**31
-    assert 0 <= receiver_vault_id < 2**31
-    assert 0 <= amount < 2**63
-    assert 0 <= token < FIELD_PRIME
-    assert 0 <= receiver_public_key < FIELD_PRIME
-    assert 0 <= nonce < 2**31
-    assert 0 <= expiration_timestamp < 2**22
-
-    instruction_type = 1
-    return get_msg(instruction_type, sender_vault_id, receiver_vault_id, amount, 0, token,
-                   receiver_public_key, nonce, expiration_timestamp, hash=hash)

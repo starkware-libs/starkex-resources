@@ -1,4 +1,3 @@
-
 import random
 
 from starkware.crypto.signature import EC_ORDER, pedersen_hash

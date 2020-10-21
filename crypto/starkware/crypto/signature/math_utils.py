@@ -15,11 +15,17 @@
 ###############################################################################
 
 
+from typing import Tuple
+
 import mpmath
 import sympy
+from sympy.core.numbers import igcdex
+
+# A type that represents a point (x,y) on an elliptic curve.
+ECPoint = Tuple[int, int]
 
 
-def pi_as_string(digits):
+def pi_as_string(digits: int) -> str:
     """
     Returns pi as a string of decimal digits without the decimal point ("314...").
     """
@@ -27,30 +33,30 @@ def pi_as_string(digits):
     return '3' + str(mpmath.mp.pi)[2:]
 
 
-def is_quad_residue(n, p):
+def is_quad_residue(n: int, p: int) -> bool:
     """
     Returns True if n is a quadratic residue mod p.
     """
     return sympy.is_quad_residue(n, p)
 
 
-def sqrt_mod(n, p):
+def sqrt_mod(n: int, p: int) -> int:
     """
     Finds the minimum positive integer m such that (m*m) % p == n
     """
     return min(sympy.sqrt_mod(n, p, all_roots=True))
 
 
-def div_mod(n, m, p):
+def div_mod(n: int, m: int, p: int) -> int:
     """
     Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
     """
-    a, b, c = sympy.numbers.igcdex(m, p)
+    a, b, c = igcdex(m, p)
     assert c == 1
     return (n * a) % p
 
 
-def ec_add(point1, point2, p):
+def ec_add(point1: ECPoint, point2: ECPoint, p: int) -> ECPoint:
     """
     Gets two points on an elliptic curve mod p and returns their sum.
     Assumes the points are given in affine form (x, y) and have different x coordinates.
@@ -62,7 +68,7 @@ def ec_add(point1, point2, p):
     return x, y
 
 
-def ec_neg(point, p):
+def ec_neg(point: ECPoint, p: int) -> ECPoint:
     """
     Given a point (x,y) return (x, -y)
     """
@@ -70,7 +76,7 @@ def ec_neg(point, p):
     return (x, (-y) % p)
 
 
-def ec_double(point, alpha, p):
+def ec_double(point: ECPoint, alpha: int, p: int) -> ECPoint:
     """
     Doubles a point on an elliptic curve with the equation y^2 = x^3 + alpha*x + beta mod p.
     Assumes the point is given in affine form (x, y) and has y != 0.
@@ -82,7 +88,7 @@ def ec_double(point, alpha, p):
     return x, y
 
 
-def ec_mult(m, point, alpha, p):
+def ec_mult(m: int, point: ECPoint, alpha: int, p: int) -> ECPoint:
     """
     Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
     Assumes the point is given in affine form (x, y) and that 0 < m < order(point).

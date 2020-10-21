@@ -20,6 +20,7 @@
     "test/signature_test.js",
     "signature_example.js",
     "constant_points.json",
+    "keys_precomputed.json",
     "signature_test_data.json"
   ],
   "dependencies": {

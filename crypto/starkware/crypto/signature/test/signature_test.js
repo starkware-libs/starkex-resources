@@ -22,6 +22,22 @@ function randomString(characters, length) {
     return result;
 }
 
+describe('Key computation', () => {
+    it('should derive public key correctly', () => {
+        const precomputedKeys = require('.././keys_precomputed.json');
+        for (const privKey in precomputedKeys) {
+            if ({}.hasOwnProperty.call(precomputedKeys, privKey)) {
+                // Drop the '0x' prefix.
+                const fixedPrivKey = privKey.substring(2);
+                const keyPair = starkwareCrypto.ec.keyFromPrivate(fixedPrivKey, 'hex');
+                const pubKey = '0x' + keyPair.getPublic().getX().toString('hex');
+                const expectedPubKey = precomputedKeys[privKey];
+                expect(expectedPubKey).to.equal(pubKey);
+            }
+        }
+    });
+});
+
 describe('Verify', () => {
     // Generate BN of 1.
     const oneBn = new BN('1', 16);
@@ -150,6 +166,22 @@ describe('Pedersen Hash', () => {
             ).to.equal(
                 hashTestData.output.substring(2)
             );
+        }
+    });
+});
+
+describe('Signature Tests', () => {
+    it('should create ecdsa deterministic signatures', () => {
+        const rfc6979TestData = require('../rfc6979_signature_test_vector.json');
+        const privateKey = rfc6979TestData.private_key.substring(2);
+        const keyPair = starkwareCrypto.ec.keyFromPrivate(privateKey, 'hex');
+        let i = 0;
+        for (; i < rfc6979TestData.messages.length; i++) {
+            const msgHash = rfc6979TestData.messages[i].hash.substring(2);
+            const msgSignature = starkwareCrypto.sign(keyPair, msgHash);
+            const { r, s } = msgSignature;
+            expect(r.toString(10)).to.equal(rfc6979TestData.messages[i].r);
+            expect(s.toString(10)).to.equal(rfc6979TestData.messages[i].s);
         }
     });
 });

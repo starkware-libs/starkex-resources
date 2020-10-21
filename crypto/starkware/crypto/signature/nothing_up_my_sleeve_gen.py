@@ -24,7 +24,6 @@ The output of this file is kept in 'pedersen_params.json', and 'signature.py' us
 import json
 import math
 import os
-from collections import OrderedDict
 
 from math_utils import ec_double, is_quad_residue, pi_as_string, sqrt_mod
 
@@ -128,7 +127,7 @@ AUTO_GENERATED_STRING = \
 PEDERSEN_HASH_POINT_FILENAME = os.path.join(
     os.path.dirname(__file__), 'pedersen_params.json')
 open(PEDERSEN_HASH_POINT_FILENAME, 'w').write(
-    json.dumps(OrderedDict({
+    json.dumps({
         '_license': COPYRIGHT_STRING.splitlines(),
         '_comment': AUTO_GENERATED_STRING,
         'FIELD_PRIME': FIELD_PRIME,
@@ -136,4 +135,4 @@ open(PEDERSEN_HASH_POINT_FILENAME, 'w').write(
         'EC_ORDER': EC_ORDER,
         'ALPHA': ALPHA,
         'BETA': BETA,
-        'CONSTANT_POINTS': CONSTANT_POINTS}), indent=4))
+        'CONSTANT_POINTS': CONSTANT_POINTS}, indent=4))
