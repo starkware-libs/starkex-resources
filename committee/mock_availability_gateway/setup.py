@@ -15,7 +15,7 @@ setup(
     url='https://starkware.co',
     packages=find_packages(),
     install_requires=[
-        'aiohttp==3.6.2',
+        'aiohttp==3.7.4',
         'PyYAML==5.1',
         'Web3==5.2.2',
     ],
