@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'aiohttp==3.6.2',
-        'PyYAML==5.1',
+        'PyYAML==5.4',
         'Web3==5.2.2',
     ],
     package_data={
