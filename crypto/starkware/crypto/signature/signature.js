@@ -247,7 +247,7 @@ function getTransferMsgHash(
     let instructionType = oneBn;
     if (condition !== null) {
         condition = condition.substring(2);
-        assertInRange(new BN(condition), zeroBn, prime, 'condition');
+        assertInRange(new BN(condition, 16), zeroBn, prime, 'condition');
         instructionType = twoBn;
     }
     return hashMsg(
