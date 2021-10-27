@@ -174,7 +174,7 @@ def test_transfer_signing_example(data_file: dict):
     """
     Tests signing transfer. Parameters are from signature_test_data.json.
     """
-    private_key = int(data_file['meta_data']['party_a_order']['private_key'], 16)
+    private_key = int(data_file['meta_data']['transfer_order']['private_key'], 16)
     public_key = private_to_stark_key(private_key)
     key = 'transfer_order'
     data = read_transfer_data(data_file[key])
