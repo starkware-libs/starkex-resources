@@ -34,9 +34,8 @@ by running
 ```
 and then running
 ```
-docker build -f committee/Dockerfile .
+docer build -f committee/Dockerfile build/Release
 ```
-from the build directory (build/Release).
 
 ## Running the Committee Service
 The docker image expects to find a `config.yaml` file in its root directory. This file should be
