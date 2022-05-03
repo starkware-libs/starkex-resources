@@ -34,7 +34,7 @@ by running
 ```
 and then running
 ```
-docer build -f committee/Dockerfile build/Release
+docker build -f committee/Dockerfile build/Release
 ```
 
 ## Running the Committee Service
