@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     namespace_packages=['starkware'],
     install_requires=[
-        'aerospike==3.9.0',
+        'aerospike==4.0.0',
         'aiobotocore==0.11.0',
         'aioredis==1.2.0',
         'aioredlock==0.3.0',
