@@ -31,6 +31,11 @@ class AvailabilityGatewayClient:
             raise BadRequest(res.status_code, res.text)
         return res.text
 
+    async def order_tree_height(self) -> int:
+        uri = "/availability_gateway/order_tree_height"
+        answer = self._send_request("GET", uri)
+        return int(answer)
+
     async def get_batch_data(self, batch_id: int) -> Optional[StateUpdate]:
         uri = f'/availability_gateway/get_batch_data?batch_id={batch_id}'
         answer = self._send_request('GET', uri)

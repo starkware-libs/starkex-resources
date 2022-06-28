@@ -10,11 +10,22 @@ from starkware.storage.test_utils import MockStorage
 from .committee import Committee
 
 
+ORDER_TREE_HEIGHT = 63
+
+
+class AvailabilityGatewayClientMock:
+    def __init__(self):
+        pass
+
+    async def order_tree_height(self) -> int:
+        return ORDER_TREE_HEIGHT
+
+
 @pytest.fixture
 def committee():
     config = {
         'VAULTS_MERKLE_HEIGHT': 31,
-        'ORDERS_MERKLE_HEIGHT': 63,
+        'ORDERS_MERKLE_HEIGHT': ORDER_TREE_HEIGHT,
         'POLLING_INTERVAL': 1,
     }
 
@@ -24,7 +35,7 @@ def committee():
         storage=MockStorage(),
         merkle_storage=MockStorage(),
         hash_func=async_pedersen_hash_func,
-        availability_gateway=None)
+        availability_gateway=AvailabilityGatewayClientMock())
 
 
 @pytest.fixture

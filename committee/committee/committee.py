@@ -21,7 +21,7 @@ from starkware.storage.imm_storage import immediate_storage
 from starkware.storage.merkle_tree import MerkleTree
 from starkware.storage.storage import Storage
 
-from .availability_gateway_client import AvailabilityGatewayClient
+from .availability_gateway_client import AvailabilityGatewayClient, BadRequest
 from .custom_validation import is_valid
 
 logger = logging.getLogger(__package__)
@@ -44,7 +44,8 @@ class CommitteeBatchInfo():
 
 class Committee:
     def __init__(self, config: dict, private_key: str, storage: Storage,
-                 merkle_storage: Storage, hash_func, availability_gateway):
+                 merkle_storage: Storage, hash_func,
+                 availability_gateway: AvailabilityGatewayClient):
         self.storage = storage
         self.merkle_storage = merkle_storage
         self.hash_func = hash_func
@@ -145,11 +146,46 @@ class Committee:
         await self.storage.set_value(
             self.committee_batch_info_key(batch_id), batch_info.serialize())
 
+        # In StarkEx version 4.5, the height of the order tree has changed. For an old committee
+        # (i.e. a committee from version 4.0 or below) to work with a version 4.5 backend, the order
+        # tree height must be checked against the availability gateway, and possibly changed.
+        # If the configured height doesn't match the height sent in response from the availability
+        # gateway, assert that the order tree is not validated (self.validate_orders must be False
+        # to swap order tree heights, otherwise the computed order root is incorrect anyway).
+        # This patch doesn't affect the calculation of the order tree root, only the `trades_height`
+        # used for signing the batch. Therefore, the patch relies on the committee trusting the
+        # order root sent from the AvailabilityGateway (This means that it will only work if the
+        # committee is not validating orders).
+        # This patch will be deleted in the version 4.5 committee.
+        logger.info("Trying to fetch trades height from the availability gateway")
+        # If the API of order_tree_height exists in the Availability Gateway, use it. Otherwise,
+        # use ORDERS_MERKLE_HEIGHT from the config (this can happen if the SE
+        # Availability Gateway is using an old SE version which doesn't have the
+        # order_tree_height API).
+        trades_height = self.orders_merkle_height
+        try:
+            trades_height = await self.availability_gateway.order_tree_height()
+            logger.info(
+                f"Trades height received from the Availability Gateway is {trades_height}. The "
+                f"trades height which is defined in the config is {self.orders_merkle_height}."
+            )
+            if self.orders_merkle_height != trades_height:
+                assert not validate_orders, (
+                    f"validate_orders is {validate_orders}, but configured trades height "
+                    f"{self.orders_merkle_height} is not equal to response from the availability "
+                    f"gateway ({trades_height}). This indicates that the root of the order "
+                    f"tree was computed incorrectly and the claim will not be approved by the "
+                    f"availability gateway, so there is no point in signing and sending the "
+                    f"signature."
+                )
+        except BadRequest:
+            pass
+
         logger.info(f'Signing batch with sequence number {batch_info.sequence_number}')
 
         availability_claim = hash_availability_claim(
             batch_info.vaults_root, self.vaults_merkle_height, batch_info.orders_root,
-            self.orders_merkle_height, batch_info.sequence_number)
+            trades_height, batch_info.sequence_number)
         signature = eth.Account._sign_hash(availability_claim, self.account.key).signature.hex()
         return signature, availability_claim.hex()
 
