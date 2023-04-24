@@ -4,7 +4,7 @@ RUN apt update && apt -y install netcat python-dev libgmp3-dev && apt clean
 # First install the dependencies.
 COPY committee/committee.egg-info/requires.txt /app/committee/
 RUN pip3 install -r /app/committee/requires.txt
-RUN pip3 install web3
+RUN pip install "web3>=5.28,<6"
 
 # Install python packages.
 COPY committee/starkware_crypto-0.1.zip /app/starkware-crypto/
