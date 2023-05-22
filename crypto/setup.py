@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     namespace_packages=['starkware'],
     install_requires=[
-        'mpmath==1.0.0',
+        'mpmath==1.3.0',
         'sympy==1.6',
         'ecdsa==0.16.0',
     ],
