@@ -11,6 +11,6 @@ setup(
         'marshmallow-dataclass==7.1.0',
         'marshmallow==3.2.1',
         'PyYAML==5.1',
-        'requests == 2.22.0',
+        'requests == 2.31.0',
     ]
 )
