@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7-bullseye
 RUN apt update && apt -y install netcat python-dev libgmp3-dev && apt clean
 
 # First install the dependencies.
